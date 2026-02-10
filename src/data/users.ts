@@ -13,6 +13,7 @@ export const mockUsers: User[] = [
     notificationsEnabled: true,
     emailNotifications: true,
     pushNotifications: false,
+    sponsorCode: 'JEAN-DUP-2025',
   },
 ]
 

@@ -2,14 +2,18 @@
 
 import Link from 'next/link'
 import { Card } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
 import { useContracts } from '@/hooks/useContracts'
-import { formatCurrency, formatPercent, formatDate } from '@/domain/utils/formatters'
+import { formatCurrency, formatPercent } from '@/domain/utils/formatters'
 import { SkeletonCard } from '@/components/ui/Skeleton'
 import { EmptyState, NoDataIcon } from '@/components/ui/EmptyState'
 
 export default function ContractsPage() {
   const { contracts, loading, totalValue, totalPerformance, totalPerformancePercent } = useContracts()
+  const contractProfiles: Record<string, string> = {
+    'contract-1': 'Audacieux',
+    'contract-2': 'Tempéré',
+    'contract-3': 'Tempéré',
+  }
 
   if (loading) {
     return (
@@ -56,19 +60,13 @@ export default function ContractsPage() {
       ) : (
         <div className="space-y-4">
           {contracts.map((contract) => (
-            <Link key={contract.id} href={`/app/contracts/${contract.id}`}>
+            <Link key={contract.id} href={`/app/contracts/${contract.id}`} className="block">
               <Card className="hover:shadow-card-hover transition-shadow">
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-text">{contract.label}</h3>
-                      <Badge variant={contract.status === 'active' ? 'success' : 'default'}>
-                        {contract.status === 'active' ? 'Actif' : contract.status}
-                      </Badge>
+                      <h3 className="font-semibold text-text">{contract.label} <span className="text-white font-normal">–</span> <span className="text-beige-light">{contractProfiles[contract.id] || 'Tempéré'}</span></h3>
                     </div>
-                    <p className="text-sm text-text-muted capitalize">
-                      {contract.type.replace('-', ' ')} • Ouvert le {formatDate(contract.openedAt)}
-                    </p>
                   </div>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-text-muted">
                     <polyline points="9 18 15 12 9 6" />

@@ -1,37 +1,52 @@
 'use client'
 
-import { use, useState } from 'react'
-import Link from 'next/link'
+import { use, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, KPICard, CardHeader } from '@/components/ui/Card'
+import { Card, CardHeader } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { Tabs } from '@/components/ui/Tabs'
-import { Button } from '@/components/ui/Button'
-import { PieChart } from '@/components/charts/PieChart'
 import { useContract } from '@/hooks/useContracts'
-import { formatCurrency, formatPercent, formatDate } from '@/domain/utils/formatters'
-import { calculateAllocations } from '@/data/positions'
-import { SkeletonCard, SkeletonTable } from '@/components/ui/Skeleton'
+import { useAuth } from '@/hooks/useAuth'
+import { formatCurrency, formatDate, formatFileSize } from '@/domain/utils/formatters'
+import { documentsService } from '@/services'
+import { SkeletonCard } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/ErrorState'
+import type { Document, DocumentType } from '@/domain/types'
 
-type TabId = 'positions' | 'transactions' | 'documents'
+const contractProfiles: Record<string, string> = {
+  'contract-1': 'Audacieux',
+  'contract-2': 'Tempéré',
+  'contract-3': 'Tempéré',
+}
+
+const typeLabels: Record<DocumentType, string> = {
+  releve: 'Relevé',
+  rapport: 'Rapport',
+  fiscal: 'Fiscal',
+  contrat: 'Contrat',
+  avenant: 'Avenant',
+  autre: 'Autre',
+}
 
 export default function ContractDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
-  const { contract, positions, transactions, loading, error } = useContract(id)
-  const [activeTab, setActiveTab] = useState<TabId>('positions')
+  const { contract, loading, error } = useContract(id)
+  const { user } = useAuth()
+  const [documents, setDocuments] = useState<Document[]>([])
+
+  useEffect(() => {
+    if (user) {
+      documentsService.getDocuments(user.id).then((docs) => {
+        setDocuments(docs.filter((d) => d.contractId === id))
+      })
+    }
+  }, [user, id])
 
   if (loading) {
     return (
       <div className="p-4 space-y-6">
         <SkeletonCard />
-        <div className="grid grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
-        <SkeletonTable />
+        <SkeletonCard />
       </div>
     )
   }
@@ -41,207 +56,106 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
       <div className="p-4">
         <ErrorState
           title="Contrat introuvable"
-          message="Ce contrat n'existe pas ou vous n'y avez pas accès."
-          onRetry={() => router.push('/app/contracts')}
+          message="Ce contrat n&apos;existe pas ou vous n&apos;y avez pas accès."
+          onRetry={() => router.back()}
         />
       </div>
     )
   }
 
-  const allocations = calculateAllocations(positions)
+  const profileName = contractProfiles[contract.id] || 'Tempéré'
+  const typeLabel = contract.type === 'assurance-vie' ? 'Assurance Vie' : contract.type === 'per' ? 'PER' : 'Compte-titres'
 
-  const tabs = [
-    { id: 'positions' as const, label: 'Positions', badge: positions.length },
-    { id: 'transactions' as const, label: 'Mouvements', badge: transactions.length },
-    { id: 'documents' as const, label: 'Documents' },
-  ]
+  const handleDownload = (doc: Document) => {
+    alert(`Téléchargement de ${doc.filename} - POC`)
+  }
 
   return (
     <div className="p-4 space-y-6">
-      {/* Back button */}
-      <div>
-        <Link
-          href="/app/contracts"
-          className="inline-flex items-center gap-1 text-sm text-text-muted"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-          Retour aux contrats
-        </Link>
-      </div>
-
-      {/* Header */}
-      <Card className="bg-primary text-white">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-xl font-bold">{contract.label}</h1>
-              <Badge variant={contract.status === 'active' ? 'success' : 'default'}>
-                {contract.status === 'active' ? 'Actif' : contract.status}
-              </Badge>
-            </div>
-            <p className="text-white/70 text-sm capitalize">
-              {contract.type.replace('-', ' ')} • Ouvert le {formatDate(contract.openedAt)}
-            </p>
-          </div>
+      {/* Infos contrat */}
+      <Card>
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-lg font-semibold text-beige-light">{profileName}</span>
+          <span className="text-text-muted">&middot;</span>
+          <span className="text-sm text-text-muted">Gestion libre avec mandat d&apos;arbitrage</span>
         </div>
-        <div className="flex items-end justify-between">
-          <div>
-            <p className="text-white/70 text-sm">Valeur actuelle</p>
-            <p className="text-3xl font-bold">{formatCurrency(contract.currentValue)}</p>
+        <div className="space-y-3">
+          <div className="flex justify-between">
+            <span className="text-sm text-text-muted">Type de contrat</span>
+            <span className="text-sm font-medium text-text">{typeLabel}</span>
           </div>
-          <div className="text-right">
-            <p className={`text-xl font-semibold ${contract.performanceAmount >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-              {formatPercent(contract.performancePercent)}
-            </p>
-            <p className="text-sm text-white/70">{formatCurrency(contract.performanceAmount)}</p>
+          <div className="flex justify-between">
+            <span className="text-sm text-text-muted">Durée</span>
+            <span className="text-sm font-medium text-text">Vie Entière</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm text-text-muted">Date d&apos;ouverture</span>
+            <span className="text-sm font-medium text-text">{formatDate(contract.openedAt)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm text-text-muted">Versements réguliers</span>
+            <span className="text-sm font-medium text-text">200,00 € / Mensuel</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm text-text-muted">Valeur actuelle</span>
+            <span className="text-sm font-bold text-text">{formatCurrency(contract.currentValue)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm text-text-muted">Performance</span>
+            <span className={`text-sm font-bold ${contract.performanceAmount >= 0 ? 'text-success' : 'text-danger'}`}>
+              {contract.performanceAmount >= 0 ? '+' : ''}{formatCurrency(contract.performanceAmount)}
+            </span>
           </div>
         </div>
       </Card>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 gap-4">
-        <KPICard label="Versement initial" value={formatCurrency(contract.initialDeposit)} />
-        <KPICard label="Total versé" value={formatCurrency(contract.totalDeposits)} />
-        <KPICard label="Retraits" value={formatCurrency(contract.totalWithdrawals)} />
-        <KPICard
-          label="Dernière valorisation"
-          value={formatDate(contract.lastValuationAt)}
-        />
-      </div>
-
-      {/* Quick Actions */}
-      <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => router.push('/app/actions/deposit')}
-        >
-          Verser
-        </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => router.push('/app/actions/rebalance')}
-        >
-          Arbitrer
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.push('/app/actions/withdraw')}
-        >
-          Racheter
-        </Button>
-      </div>
-
-      {/* Tabs */}
-      <Tabs tabs={tabs} activeTab={activeTab} onChange={(id) => setActiveTab(id as TabId)} />
-
-      {/* Tab Content */}
-      {activeTab === 'positions' && (
-        <div className="space-y-6">
-          {/* Allocation Chart */}
-          {allocations.length > 0 && (
-            <Card>
-              <CardHeader title="Répartition" />
-              <PieChart
-                data={allocations.map((a) => ({
-                  value: a.value,
-                  color: a.color,
-                  label: a.label,
-                }))}
-                size={180}
-              />
-            </Card>
-          )}
-
-          {/* Positions List */}
+      {/* Documents du contrat */}
+      <div>
+        <h3 className="font-semibold text-text mb-3">Documents du contrat</h3>
+        {documents.length === 0 ? (
+          <Card>
+            <p className="text-center text-text-muted py-4">Aucun document pour ce contrat</p>
+          </Card>
+        ) : (
           <Card padding="none">
-            <div className="divide-y divide-gray-100">
-              {positions.map((position) => (
-                <div key={position.id} className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-medium text-text">{position.label}</p>
-                      <p className="text-xs text-text-muted">{position.isin}</p>
-                    </div>
-                    <Badge>{position.assetClass}</Badge>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <p className="text-text-muted">Valeur</p>
-                      <p className="font-semibold text-text">{formatCurrency(position.totalValue)}</p>
-                    </div>
-                    <div>
-                      <p className="text-text-muted">Poids</p>
-                      <p className="font-semibold text-text">{position.weight.toFixed(1)}%</p>
+            <div className="divide-y divide-border/50">
+              {documents.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="px-4 py-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors"
+                  onClick={() => handleDownload(doc)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-danger/15 flex items-center justify-center text-danger shrink-0">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14,2 14,8 20,8" />
+                      </svg>
                     </div>
                     <div>
-                      <p className="text-text-muted">Perf</p>
-                      <p className={`font-semibold ${position.performanceAmount >= 0 ? 'text-accent' : 'text-danger'}`}>
-                        {formatPercent(position.performancePercent)}
+                      <p className="text-sm font-medium text-text">{doc.label}</p>
+                      <p className="text-[11px] text-text-muted">
+                        {formatDate(doc.createdAt)} &middot; {formatFileSize(doc.size)}
                       </p>
                     </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge size="sm">{typeLabels[doc.type]}</Badge>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-text-muted shrink-0">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
                   </div>
                 </div>
               ))}
             </div>
           </Card>
-        </div>
-      )}
-
-      {activeTab === 'transactions' && (
-        <Card padding="none">
-          {transactions.length === 0 ? (
-            <p className="p-8 text-center text-text-muted">Aucun mouvement</p>
-          ) : (
-            <div className="divide-y divide-gray-100">
-              {transactions.map((tx) => (
-                <div key={tx.id} className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      tx.amount >= 0 ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {tx.type === 'deposit' ? '+' : tx.type === 'withdrawal' ? '-' : '↔'}
-                    </div>
-                    <div>
-                      <p className="font-medium text-text">{tx.label}</p>
-                      <p className="text-xs text-text-muted">{formatDate(tx.date)}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className={`font-semibold ${tx.amount >= 0 ? 'text-accent' : 'text-text'}`}>
-                      {tx.amount >= 0 ? '+' : ''}{formatCurrency(tx.amount)}
-                    </p>
-                    <Badge
-                      variant={tx.status === 'completed' ? 'success' : tx.status === 'pending' ? 'warning' : 'default'}
-                      size="sm"
-                    >
-                      {tx.status === 'completed' ? 'Exécuté' : tx.status === 'pending' ? 'En cours' : tx.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-      )}
-
-      {activeTab === 'documents' && (
-        <Card>
-          <div className="text-center py-8">
-            <p className="text-text-muted mb-4">Les documents de ce contrat sont disponibles dans l&apos;espace Documents.</p>
-            <Button variant="secondary" onClick={() => router.push('/app/documents')}>
-              Voir les documents
-            </Button>
-          </div>
-        </Card>
-      )}
+        )}
+      </div>
 
       {/* Disclaimer */}
-      <p className="text-xs text-text-muted text-center">
+      <p className="text-[10px] text-text-muted text-center">
         Dernière valorisation : {formatDate(contract.lastValuationAt)}. Les performances passées ne préjugent pas des performances futures.
       </p>
     </div>

@@ -1,44 +1,44 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import Image from 'next/image'
-import { Suspense, useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-import { Input } from '@/components/ui/Input'
-import { useAuth } from '@/hooks/useAuth'
+import Link from "next/link";
+import Image from "next/image";
+import { Suspense, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { useAuth } from "@/hooks/useAuth";
 
 function LoginForm() {
-  const router = useRouter()
-  const { login, isLoading, isAuthenticated } = useAuth()
+  const router = useRouter();
+  const { login, isLoading, isAuthenticated } = useAuth();
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/app')
+      router.push("/app");
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError("");
 
     if (!email || !password) {
-      setError('Veuillez remplir tous les champs')
-      return
+      setError("Veuillez remplir tous les champs");
+      return;
     }
 
     try {
-      await login({ email, password })
-      router.push('/app')
+      await login({ email, password });
+      router.push("/app");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+      setError(err instanceof Error ? err.message : "Une erreur est survenue");
     }
-  }
+  };
 
   return (
     <Card className="p-6" variant="glass">
@@ -86,7 +86,10 @@ function LoginForm() {
       </form>
 
       <div className="mt-4 text-center">
-        <a href="#" className="text-sm text-text-muted hover:text-primary transition-colors">
+        <a
+          href="#"
+          className="text-sm text-text-muted hover:text-primary transition-colors"
+        >
           Mot de passe oublié ?
         </a>
       </div>
@@ -103,7 +106,7 @@ function LoginForm() {
         />
       </div>
     </Card>
-  )
+  );
 }
 
 function LoginFormSkeleton() {
@@ -114,17 +117,17 @@ function LoginFormSkeleton() {
         <div className="h-4 bg-white/10 rounded w-48 mx-auto animate-pulse" />
       </div>
       <div className="space-y-4">
-        <div className="h-[70px] bg-white/10 rounded-xl animate-pulse" />
-        <div className="h-[70px] bg-white/10 rounded-xl animate-pulse" />
+        <div className="h-17.5 bg-white/10 rounded-xl animate-pulse" />
+        <div className="h-17.5 bg-white/10 rounded-xl animate-pulse" />
         <div className="h-12 bg-white/10 rounded-xl animate-pulse" />
       </div>
     </Card>
-  )
+  );
 }
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Main content */}
       <main className="flex-1 px-4 pt-16 pb-8 overflow-y-auto">
         <div className="w-full max-w-sm mx-auto">
@@ -137,17 +140,23 @@ export default function LoginPage() {
             <p className="text-text-muted text-sm mb-3">Pas encore client ?</p>
             <Link
               href="/simulate"
-              className="inline-flex items-center justify-center gap-2 w-full px-6 py-4 text-base font-medium text-text bg-transparent border border-border hover:bg-surface-elevated hover:border-primary rounded-2xl transition-all"
+              className="inline-flex items-center justify-center gap-2 w-full px-6 py-4 text-base font-semibold text-white gradient-cta rounded-2xl transition-all"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" />
               </svg>
-              Découvrir avec le simulateur
+              Découvrir
             </Link>
           </div>
         </div>
       </main>
-
     </div>
-  )
+  );
 }

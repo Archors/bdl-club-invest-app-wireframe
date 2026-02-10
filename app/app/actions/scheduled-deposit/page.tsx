@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
@@ -12,21 +11,29 @@ import { formatCurrency } from '@/domain/utils/formatters'
 
 type Step = 1 | 2 | 3
 
-const paymentMethods = [
-  { value: 'virement', label: 'Virement bancaire' },
-  { value: 'prelevement', label: 'Prélèvement automatique' },
-  { value: 'cheque', label: 'Chèque' },
+const frequencies = [
+  { value: 'mensuel', label: 'Mensuel' },
+  { value: 'trimestriel', label: 'Trimestriel' },
+  { value: 'semestriel', label: 'Semestriel' },
 ]
 
-export default function DepositPage() {
+const dayOptions = [
+  { value: '1', label: '1er du mois' },
+  { value: '5', label: '5 du mois' },
+  { value: '10', label: '10 du mois' },
+  { value: '15', label: '15 du mois' },
+  { value: '20', label: '20 du mois' },
+]
+
+export default function ScheduledDepositPage() {
   const router = useRouter()
   const { contracts } = useContracts()
   const [step, setStep] = useState<Step>(1)
 
   const [contractId, setContractId] = useState('')
   const [amount, setAmount] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState('virement')
-  const [isRecurring, setIsRecurring] = useState(false)
+  const [frequency, setFrequency] = useState('mensuel')
+  const [dayOfMonth, setDayOfMonth] = useState('1')
 
   const [error, setError] = useState('')
 
@@ -48,12 +55,12 @@ export default function DepositPage() {
 
   const validateStep2 = () => {
     const amountNum = parseFloat(amount)
-    if (isNaN(amountNum) || amountNum < 100) {
-      setError('Le montant minimum est de 100 €')
+    if (isNaN(amountNum) || amountNum < 50) {
+      setError('Le montant minimum est de 50 €')
       return false
     }
-    if (amountNum > 100000) {
-      setError('Le montant maximum est de 100 000 €')
+    if (amountNum > 10000) {
+      setError('Le montant maximum est de 10 000 €')
       return false
     }
     setError('')
@@ -76,7 +83,8 @@ export default function DepositPage() {
   }
 
   const handleSubmit = () => {
-    alert(`Versement de ${formatCurrency(parseFloat(amount))} sur ${selectedContract?.label} - POC (non exécuté)`)
+    const freqLabel = frequencies.find((f) => f.value === frequency)?.label
+    alert(`Versement programmé de ${formatCurrency(parseFloat(amount))} / ${freqLabel} sur ${selectedContract?.label} - POC (non exécuté)`)
     router.push('/app')
   }
 
@@ -89,12 +97,12 @@ export default function DepositPage() {
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
               s < step ? 'bg-accent text-white' :
               s === step ? 'bg-primary text-white' :
-              'bg-gray-200 text-text-muted'
+              'bg-surface-solid text-text-muted'
             }`}>
               {s < step ? '✓' : s}
             </div>
             {s < 3 && (
-              <div className={`flex-1 h-1 mx-2 rounded ${s < step ? 'bg-accent' : 'bg-gray-200'}`} />
+              <div className={`flex-1 h-1 mx-2 rounded ${s < step ? 'bg-accent' : 'bg-surface-solid'}`} />
             )}
           </div>
         ))}
@@ -104,7 +112,7 @@ export default function DepositPage() {
       {step === 1 && (
         <Card>
           <h2 className="text-xl font-bold text-text mb-2">Choisir un contrat</h2>
-          <p className="text-text-muted mb-6">Sur quel contrat souhaitez-vous effectuer un versement ?</p>
+          <p className="text-text-muted mb-6">Sur quel contrat souhaitez-vous programmer un versement ?</p>
 
           <Select
             label="Contrat"
@@ -122,41 +130,39 @@ export default function DepositPage() {
         </Card>
       )}
 
-      {/* Step 2: Amount */}
+      {/* Step 2: Amount & Frequency */}
       {step === 2 && (
         <Card>
-          <h2 className="text-xl font-bold text-text mb-2">Montant du versement</h2>
+          <h2 className="text-xl font-bold text-text mb-2">Paramétrer le versement</h2>
           <p className="text-text-muted mb-6">
             Contrat : <strong>{selectedContract?.label}</strong>
           </p>
 
           <Input
-            label="Montant"
+            label="Montant par échéance"
             type="number"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="1000"
-            hint="Minimum 100 €, maximum 100 000 €"
+            placeholder="200"
+            hint="Minimum 50 €, maximum 10 000 €"
             rightIcon={<span className="text-text-muted">€</span>}
           />
 
           <Select
-            label="Mode de paiement"
-            options={paymentMethods}
-            value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
+            label="Fréquence"
+            options={frequencies}
+            value={frequency}
+            onChange={(e) => setFrequency(e.target.value)}
             className="mt-4"
           />
 
-          <label className="flex items-center gap-3 mt-4 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={isRecurring}
-              onChange={(e) => setIsRecurring(e.target.checked)}
-              className="w-5 h-5 text-primary rounded"
-            />
-            <span className="text-sm text-text">Programmer un versement mensuel</span>
-          </label>
+          <Select
+            label="Jour de prélèvement"
+            options={dayOptions}
+            value={dayOfMonth}
+            onChange={(e) => setDayOfMonth(e.target.value)}
+            className="mt-4"
+          />
 
           {error && <p className="text-danger text-sm mt-2">{error}</p>}
 
@@ -175,9 +181,9 @@ export default function DepositPage() {
       {step === 3 && (
         <Card>
           <h2 className="text-xl font-bold text-text mb-2">Confirmation</h2>
-          <p className="text-text-muted mb-6">Vérifiez les informations de votre versement.</p>
+          <p className="text-text-muted mb-6">Vérifiez les paramètres de votre versement programmé.</p>
 
-          <div className="space-y-4 p-4 bg-gray-50 rounded-xl">
+          <div className="space-y-4 p-4 bg-white/5 rounded-xl border border-border">
             <div className="flex justify-between">
               <span className="text-text-muted">Contrat</span>
               <span className="font-medium text-text">{selectedContract?.label}</span>
@@ -187,22 +193,31 @@ export default function DepositPage() {
               <span className="font-bold text-xl text-accent">{formatCurrency(parseFloat(amount))}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-text-muted">Mode de paiement</span>
+              <span className="text-text-muted">Fréquence</span>
               <span className="font-medium text-text">
-                {paymentMethods.find((p) => p.value === paymentMethod)?.label}
+                {frequencies.find((f) => f.value === frequency)?.label}
               </span>
             </div>
-            {isRecurring && (
-              <div className="flex justify-between">
-                <span className="text-text-muted">Fréquence</span>
-                <span className="font-medium text-text">Mensuel</span>
-              </div>
-            )}
+            <div className="flex justify-between">
+              <span className="text-text-muted">Jour de prélèvement</span>
+              <span className="font-medium text-text">
+                {dayOptions.find((d) => d.value === dayOfMonth)?.label}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-text-muted">Mode</span>
+              <span className="font-medium text-text">Prélèvement automatique</span>
+            </div>
           </div>
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-xl text-sm text-blue-800">
-            <p className="font-medium">Information</p>
-            <p>Ce versement est une démonstration (POC). Aucune transaction réelle ne sera effectuée.</p>
+          <div className="mt-6 p-4 bg-accent/10 rounded-xl text-sm text-text-muted border border-accent/20">
+            <p className="font-medium text-text">Bon à savoir</p>
+            <p className="mt-1">Vous pouvez modifier ou suspendre votre versement programmé à tout moment depuis votre espace.</p>
+          </div>
+
+          <div className="mt-4 p-4 bg-white/5 rounded-xl text-sm text-text-muted border border-border">
+            <p className="font-medium text-text">Information</p>
+            <p className="mt-1">Ce versement est une démonstration (POC). Aucune transaction réelle ne sera effectuée.</p>
           </div>
 
           <div className="flex gap-3 mt-6">
@@ -210,7 +225,7 @@ export default function DepositPage() {
               Modifier
             </Button>
             <Button onClick={handleSubmit} fullWidth>
-              Confirmer le versement
+              Confirmer
             </Button>
           </div>
         </Card>

@@ -1,0 +1,9 @@
+{
+  "name": "BDL Club Invest",
+  "short_name": "Club Invest",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b034d",
+  "theme_color": "#0b034d",
+  "icons": []
+}

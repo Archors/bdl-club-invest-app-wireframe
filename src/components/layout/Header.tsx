@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks'
 
 const pageTitles: Record<string, string> = {
@@ -15,12 +15,15 @@ const pageTitles: Record<string, string> = {
   '/app/profile': 'Mon profil',
   '/app/alerts': 'Notifications',
   '/app/actions/deposit': 'Nouveau versement',
+  '/app/actions/scheduled-deposit': 'Versement programmé',
   '/app/actions/rebalance': 'Arbitrage',
   '/app/actions/withdraw': 'Rachat',
+  '/app/transactions/history': 'Historique',
 }
 
 export function Header() {
   const pathname = usePathname()
+  const router = useRouter()
   const { user } = useAuth()
 
   const getTitle = () => {
@@ -30,21 +33,41 @@ export function Header() {
     return pageTitles[pathname] || 'Club Invest'
   }
 
-  const showBackButton = pathname !== '/app' && !pathname.startsWith('/app/contracts/')
+  const mainTabs = ['/app', '/app/resources', '/app/transactions', '/app/club']
+  const showBackButton = !mainTabs.includes(pathname)
+  const useHistoryBack = pathname.startsWith('/app/actions/') || pathname.startsWith('/app/contracts')
+
+  const getBackHref = () => {
+    if (pathname.startsWith('/app/transactions/')) return '/app/transactions'
+    if (pathname.startsWith('/app/resources/')) return '/app/resources'
+    if (pathname.startsWith('/app/club/')) return '/app/club'
+    return '/app'
+  }
 
   return (
     <header className="sticky top-0 z-40 glass border-b border-border">
       <div className="flex items-center justify-between px-4 h-14">
         <div className="flex items-center gap-3">
           {showBackButton ? (
+            useHistoryBack ? (
+              <button
+                onClick={() => router.back()}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+            ) : (
             <Link
-              href="/app"
+              href={getBackHref()}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </Link>
+            )
           ) : (
             <Image
               src="/image.webp"
@@ -72,7 +95,7 @@ export function Header() {
           </Link>
           <Link
             href="/app/profile"
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/20 text-primary font-semibold text-sm"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-beige/20 text-beige font-semibold text-sm border border-beige/30"
           >
             {user?.firstName?.[0]}{user?.lastName?.[0]}
           </Link>

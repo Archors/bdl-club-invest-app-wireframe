@@ -37,7 +37,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-50 glass border-b border-border">
         <div className="px-4 h-14 flex items-center justify-between">

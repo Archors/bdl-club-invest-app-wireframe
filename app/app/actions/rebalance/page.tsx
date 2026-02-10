@@ -93,14 +93,6 @@ export default function RebalancePage() {
 
   return (
     <div className="p-4 max-w-lg mx-auto">
-      {/* Back */}
-      <Link href="/app" className="inline-flex items-center gap-1 text-sm text-text-muted mb-6">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-        Retour
-      </Link>
-
       {/* Progress */}
       <div className="flex items-center gap-2 mb-8">
         {[1, 2, 3].map((s) => (

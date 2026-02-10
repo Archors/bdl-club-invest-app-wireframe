@@ -44,14 +44,14 @@ export function Modal({ isOpen, onClose, title, children, size = 'md', className
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
       <div
-        className="absolute inset-0 bg-black/50 transition-opacity"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
       <div
         className={cn(
-          'relative bg-surface w-full rounded-t-3xl sm:rounded-2xl shadow-xl',
+          'relative bg-surface w-full rounded-2xl shadow-xl',
           'transform transition-all duration-300 ease-out',
           'max-h-[90vh] overflow-hidden flex flex-col',
           sizeStyles[size],

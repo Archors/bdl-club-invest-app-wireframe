@@ -12,6 +12,7 @@ export interface User {
   notificationsEnabled: boolean
   emailNotifications: boolean
   pushNotifications: boolean
+  sponsorCode?: string
 }
 
 export interface AuthState {
