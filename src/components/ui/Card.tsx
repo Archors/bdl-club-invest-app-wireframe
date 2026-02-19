@@ -19,9 +19,9 @@ export function Card({ children, className, padding = 'md', variant = 'glass', o
   const Component = onClick ? 'button' : 'div'
 
   const variantStyles = {
-    default: 'bg-surface-solid backdrop-blur-xl border border-border glass-card',
-    glass: 'glass glass-card',
-    elevated: 'bg-surface-elevated backdrop-blur-xl border border-border glass-card',
+    default: 'bg-white border border-border',
+    glass: 'bg-white border border-border',
+    elevated: 'bg-surface-solid border border-border',
   }
 
   return (

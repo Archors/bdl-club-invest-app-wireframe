@@ -72,7 +72,17 @@ export const authService: IAuthService = {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem(AUTH_KEY)
       if (stored) {
-        return JSON.parse(stored)
+        const parsed = JSON.parse(stored)
+        // Always pull address/profile fields from defaultUser if missing in stored session
+        return {
+          ...defaultUser,
+          ...parsed,
+          address: parsed.address ?? defaultUser.address,
+          postalCode: parsed.postalCode ?? defaultUser.postalCode,
+          city: parsed.city ?? defaultUser.city,
+          biometrics: parsed.biometrics ?? defaultUser.biometrics,
+          faceId: parsed.faceId ?? defaultUser.faceId,
+        }
       }
     }
     return null

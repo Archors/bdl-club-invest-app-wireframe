@@ -6,12 +6,17 @@ export interface User {
   firstName: string
   lastName: string
   phone?: string
+  address?: string
+  postalCode?: string
+  city?: string
   riskProfile: RiskProfile
   createdAt: string
   lastLoginAt?: string
   notificationsEnabled: boolean
   emailNotifications: boolean
   pushNotifications: boolean
+  biometrics?: boolean
+  faceId?: boolean
   sponsorCode?: string
 }
 

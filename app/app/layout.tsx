@@ -32,9 +32,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen">
       <Header />
-      <main className="flex-1 pb-20">{children}</main>
+      <main className="pb-28" style={{ paddingTop: 'var(--header-height, 80px)' }}>{children}</main>
       <BottomNav />
     </div>
   )

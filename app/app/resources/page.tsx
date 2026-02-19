@@ -1,59 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Card } from '@/components/ui/Card'
-import { mockResources } from '@/data/resources'
-import type { ResourceType } from '@/data/resources'
-import { cn } from '@/lib/cn'
+import { prismicClient } from '@/lib/prismic'
 
-const filters: { label: string; value: ResourceType | 'all' }[] = [
-  { label: 'Tous', value: 'all' },
-  { label: 'Articles', value: 'article' },
-  { label: 'Vidéos', value: 'video' },
-  { label: 'Rencontres', value: 'visite' },
-  { label: 'Lettres', value: 'lettre' },
-]
-
-const typeConfig: Record<ResourceType, { label: string; color: string; icon: React.ReactNode }> = {
-  article: {
-    label: 'Article',
-    color: 'bg-accent/15 text-accent-light border border-accent/20',
-    icon: (
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-      </svg>
-    ),
-  },
-  video: {
-    label: 'Vidéo',
-    color: 'bg-beige/10 text-beige-light border border-beige/20',
-    icon: (
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <polygon points="5 3 19 12 5 21 5 3" />
-      </svg>
-    ),
-  },
-  visite: {
-    label: 'Rencontre',
-    color: 'bg-success/15 text-success-light border border-success/20',
-    icon: (
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-        <polyline points="9,22 9,12 15,12 15,22" />
-      </svg>
-    ),
-  },
-  lettre: {
-    label: 'Lettre du Club',
-    color: 'bg-warning/15 text-warning border border-warning/20',
-    icon: (
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-        <polyline points="22,6 12,13 2,6" />
-      </svg>
-    ),
-  },
+interface Article {
+  title: string
+  description: string
+  category: string
+  slug: string
+  date: string
+  thumbnail: string | null
+  authorName: string | null
+  authorAvatar: string | null
+  tags: string[]
 }
 
 function formatDate(dateStr: string): string {
@@ -64,96 +25,173 @@ function formatDate(dateStr: string): string {
   })
 }
 
-export default function ResourcesPage() {
-  const [activeFilter, setActiveFilter] = useState<ResourceType | 'all'>('all')
 
-  const filteredResources = (activeFilter === 'all'
-    ? mockResources
-    : mockResources.filter((r) => r.type === activeFilter)
-  ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+const PAGE_SIZE = 15
+
+export default function ResourcesPage() {
+  const [articles, setArticles] = useState<Article[]>([])
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+
+  async function fetchPage(pageNum: number) {
+    const res = await prismicClient.getByType('article', {
+      pageSize: PAGE_SIZE,
+      page: pageNum,
+      orderings: [{ field: 'my.article.date', direction: 'desc' }],
+      fetchLinks: ['author.name', 'author.image'],
+    })
+
+    const mapped: Article[] = res.results.map((doc) => ({
+      title: (doc.data.title as string) ?? '',
+      description: (doc.data.meta_description as string) ?? '',
+      category: ((doc.data.category as any)?.uid ?? '').replace(/-/g, ' '),
+      slug: doc.uid ?? doc.id,
+      date: (doc.data.date as string) ?? doc.first_publication_date,
+      thumbnail: (doc.data.thumbnail as any)?.url ?? null,
+      authorName: (doc.data.author as any)?.data?.name ?? null,
+      authorAvatar: (doc.data.author as any)?.data?.image?.url ?? null,
+      tags: doc.tags ?? [],
+    }))
+
+    setHasMore(res.next_page !== null)
+    return mapped
+  }
+
+  useEffect(() => {
+    fetchPage(1).then((data) => {
+      setArticles(data)
+      setLoading(false)
+    })
+  }, [])
+
+  async function loadMore() {
+    setLoadingMore(true)
+    const next = page + 1
+    const data = await fetchPage(next)
+    setArticles((prev) => [...prev, ...data])
+    setPage(next)
+    setLoadingMore(false)
+  }
+
+  if (loading) {
+    return (
+      <div className="p-4 space-y-3">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="bg-white rounded-2xl p-4 flex gap-3 animate-pulse">
+            <div className="w-16 h-16 rounded-xl bg-border shrink-0" />
+            <div className="flex-1 space-y-2 py-1">
+              <div className="h-3 bg-border rounded w-1/3" />
+              <div className="h-4 bg-border rounded w-full" />
+              <div className="h-3 bg-border rounded w-2/3" />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="p-4 space-y-4">
-      <div>
-        <h2 className="text-xl font-bold text-text">Actualités</h2>
-        <p className="text-text-muted text-sm mt-1">Le fil d&apos;actu BDL Club Invest</p>
-      </div>
-
-      {/* Filtres */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-        {filters.map((f) => (
-          <button
-            key={f.value}
-            onClick={() => setActiveFilter(f.value)}
-            className={cn(
-              'px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all',
-              activeFilter === f.value
-                ? 'bg-accent text-white'
-                : 'bg-surface-solid text-text-muted border border-border'
-            )}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Feed */}
-      <div className="space-y-3">
-        {filteredResources.map((resource) => {
-          const config = typeConfig[resource.type]
-          return (
-            <Card key={resource.id} className="border border-border">
-              <div className="flex items-start gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold', config.color)}>
-                      {config.icon}
-                      {config.label}
-                    </span>
-                    <span className="text-[11px] text-text-muted">{formatDate(resource.date)}</span>
-                  </div>
-                  <p className="text-sm font-medium text-text line-clamp-2">{resource.title}</p>
-                  <p className="text-xs text-text-muted mt-1 line-clamp-2">{resource.description}</p>
-                  {resource.duration && (
-                    <div className="flex items-center gap-1.5 mt-2 text-xs text-text-muted">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                      </svg>
-                      {resource.duration}
-                    </div>
-                  )}
-                  {resource.location && (
-                    <div className="flex items-center gap-1.5 mt-2 text-xs text-text-muted">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                        <circle cx="12" cy="10" r="3" />
-                      </svg>
-                      {resource.location}
-                    </div>
-                  )}
+      {articles.map((article, index) => (
+        <Link key={article.slug} href={`/app/resources/${article.slug}`} className="block active:scale-[0.98] transition-transform duration-150">
+        <Card padding="none">
+          {index === 0 ? (
+            /* Featured — premier article pleine largeur */
+            <div>
+              {article.thumbnail ? (
+                <img
+                  src={article.thumbnail}
+                  alt={article.title}
+                  className="w-full h-44 object-cover rounded-t-2xl"
+                />
+              ) : (
+                <div className="w-full h-44 bg-surface-solid rounded-t-2xl flex items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-subtle">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                  </svg>
                 </div>
-                {resource.type === 'video' && (
-                  <div className="w-14 h-14 rounded-xl bg-surface-solid flex items-center justify-center shrink-0">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-accent">
-                      <polygon points="5 3 19 12 5 21 5 3" />
-                    </svg>
-                  </div>
+              )}
+              <div className="p-4">
+                {article.category && (
+                  <span className="text-[11px] font-semibold text-accent-dark capitalize">
+                    {article.category}
+                  </span>
                 )}
-                {resource.type === 'lettre' && (
-                  <div className="w-10 h-10 rounded-xl bg-surface-solid flex items-center justify-center shrink-0">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-text-muted">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                      <polyline points="7 10 12 15 17 10" />
-                      <line x1="12" y1="15" x2="12" y2="3" />
-                    </svg>
-                  </div>
+                <p className="text-base font-bold text-text mt-1 line-clamp-2">
+                  {article.title}
+                </p>
+                {article.description && (
+                  <p className="text-sm text-text-muted mt-1.5 line-clamp-2">
+                    {article.description}
+                  </p>
                 )}
+                <div className="flex items-center justify-between mt-3">
+                  <span className="text-[11px] text-text-subtle">{formatDate(article.date)}</span>
+                  {article.authorAvatar ? (
+                    <img src={article.authorAvatar} alt={article.authorName ?? ''} className="w-6 h-6 rounded-full object-cover" />
+                  ) : article.authorName ? (
+                    <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center">
+                      <span className="text-[9px] font-bold text-accent">{article.authorName[0]}</span>
+                    </div>
+                  ) : null}
+                </div>
               </div>
-            </Card>
-          )
-        })}
-      </div>
+            </div>
+          ) : (
+            /* Articles standard */
+            <div className="flex items-start gap-3.5 p-4">
+              {article.thumbnail ? (
+                <img
+                  src={article.thumbnail}
+                  alt={article.title}
+                  className="w-20 h-20 rounded-xl object-cover shrink-0"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-xl bg-surface-solid shrink-0 flex items-center justify-center">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-subtle">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                  </svg>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                {article.category && (
+                  <span className="text-[11px] font-semibold text-accent-dark capitalize">
+                    {article.category}
+                  </span>
+                )}
+                <p className="text-sm font-semibold text-text mt-0.5 line-clamp-2">
+                  {article.title}
+                </p>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-[11px] text-text-subtle">{formatDate(article.date)}</span>
+                  {article.authorAvatar ? (
+                    <img src={article.authorAvatar} alt={article.authorName ?? ''} className="w-6 h-6 rounded-full object-cover shrink-0" />
+                  ) : article.authorName ? (
+                    <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
+                      <span className="text-[9px] font-bold text-accent">{article.authorName[0]}</span>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          )}
+        </Card>
+        </Link>
+      ))}
+
+      {hasMore && (
+        <button
+          onClick={loadMore}
+          disabled={loadingMore}
+          className="w-full py-3 rounded-2xl border border-border bg-white text-sm font-semibold text-text-muted hover:bg-surface-solid transition-colors disabled:opacity-50"
+        >
+          {loadingMore ? 'Chargement…' : 'Charger plus'}
+        </button>
+      )}
     </div>
   )
 }

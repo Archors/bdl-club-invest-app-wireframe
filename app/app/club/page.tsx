@@ -5,8 +5,6 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { useAuth } from '@/hooks/useAuth'
-import { mockWebinars } from '@/data/webinars'
-
 
 function CardFace({ children }: { children: React.ReactNode }) {
   return (
@@ -124,8 +122,6 @@ export default function ClubPage() {
   const { user } = useAuth()
   const [flipped, setFlipped] = useState(false)
   const [showConditions, setShowConditions] = useState(false)
-  const [registeredWebinars, setRegisteredWebinars] = useState<string[]>([])
-
   const firstName = user?.firstName || 'Membre'
   const lastName = user?.lastName || ''
   const sponsorCode = user?.sponsorCode || 'XXXX-XXX-0000'
@@ -146,16 +142,8 @@ export default function ClubPage() {
     }
   }
 
-  const toggleWebinar = (id: string) => {
-    setRegisteredWebinars((prev) =>
-      prev.includes(id) ? prev.filter((w) => w !== id) : [...prev, id]
-    )
-  }
-
   return (
     <div className="p-4 space-y-6">
-      <h2 className="text-xl font-bold text-text">Le Club</h2>
-
       {/* Carte membre flippable */}
       <FlippableCard
         firstName={firstName}
@@ -166,20 +154,26 @@ export default function ClubPage() {
       />
       <p className="text-center text-xs text-text-muted -mt-3">Touchez la carte pour la retourner</p>
 
-      {/* Bouton partager */}
-      <button
-        onClick={handleShare}
-        className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl border border-beige/25 bg-beige/8 text-beige-light text-sm font-semibold hover:bg-beige/15 active:bg-beige/20 transition-colors"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <circle cx="18" cy="5" r="3" />
-          <circle cx="6" cy="12" r="3" />
-          <circle cx="18" cy="19" r="3" />
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-        </svg>
-        Partager mon code parrain
-      </button>
+      {/* Code parrain + partager */}
+      <div className="bg-white rounded-2xl border border-border p-4 flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] text-text-muted mb-1">Code parrain</p>
+          <p className="text-lg font-bold text-text font-mono tracking-wider">{sponsorCode}</p>
+        </div>
+        <button
+          onClick={handleShare}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold shrink-0 active:scale-95 transition-transform"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="18" cy="5" r="3" />
+            <circle cx="6" cy="12" r="3" />
+            <circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+          </svg>
+          Partager
+        </button>
+      </div>
 
       {/* Parrainage */}
       <Card>
@@ -213,62 +207,6 @@ export default function ClubPage() {
       >
         Nos conditions
       </button>
-
-      {/* Webinaires à venir */}
-      <div>
-        <h3 className="font-bold text-text mb-3">Webinaires à venir</h3>
-        <div className="space-y-3">
-          {mockWebinars.map((webinar) => {
-            const isRegistered = registeredWebinars.includes(webinar.id)
-            const date = new Date(webinar.date)
-            const formattedDate = date.toLocaleDateString('fr-FR', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-            })
-
-            return (
-              <Card key={webinar.id} className="border border-border">
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-text">{webinar.title}</p>
-                      <p className="text-xs text-text-muted mt-1">{webinar.description}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-text-muted">
-                    <span className="flex items-center gap-1">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                        <line x1="16" y1="2" x2="16" y2="6" />
-                        <line x1="8" y1="2" x2="8" y2="6" />
-                        <line x1="3" y1="10" x2="21" y2="10" />
-                      </svg>
-                      {formattedDate}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                      </svg>
-                      {webinar.time}
-                    </span>
-                    <span>{webinar.speaker}</span>
-                  </div>
-                  <Button
-                    onClick={() => toggleWebinar(webinar.id)}
-                    variant={isRegistered ? 'secondary' : 'primary'}
-                    size="sm"
-                    fullWidth
-                  >
-                    {isRegistered ? 'Inscrit ✓' : "S'inscrire"}
-                  </Button>
-                </div>
-              </Card>
-            )
-          })}
-        </div>
-      </div>
 
       {/* Modal conditions */}
       <Modal isOpen={showConditions} onClose={() => setShowConditions(false)} title="Conditions du programme de parrainage">
