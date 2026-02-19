@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
@@ -46,19 +46,6 @@ export function Header() {
   const isHome = pathname === '/app'
   const [collapsed, setCollapsed] = useState(false)
   const [sheetData, setSheetData] = useState<{ label: string; contracts: Contract[] } | null>(null)
-  const headerRef = useRef<HTMLElement>(null)
-
-  // Mesure la hauteur du header et l'expose via CSS var pour que le <main> puisse s'ajuster
-  useEffect(() => {
-    const el = headerRef.current
-    if (!el) return
-    const ro = new ResizeObserver(() => {
-      document.documentElement.style.setProperty('--header-height', `${el.offsetHeight}px`)
-    })
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-
   useEffect(() => {
     if (!isHome) return
     setCollapsed(false)
@@ -104,8 +91,7 @@ export function Header() {
 
   return (
     <header
-      ref={headerRef}
-      className="fixed top-0 left-0 right-0 z-40"
+      className="sticky top-0 z-40"
       style={{
         backgroundImage: "url('/background.png')",
         backgroundSize: 'cover',
