@@ -42,16 +42,7 @@ function LoginForm() {
 
   return (
     <Card className="p-6" variant="glass">
-      {/* Logo */}
       <div className="text-center mb-8">
-        <Image
-          src="/image.webp"
-          alt="Club Invest"
-          width={180}
-          height={50}
-          className="mx-auto mb-4"
-          priority
-        />
         <p className="text-text-muted text-sm">Connectez-vous à votre espace</p>
       </div>
 
@@ -127,17 +118,28 @@ function LoginFormSkeleton() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Main content */}
+    <div
+      className="min-h-screen flex flex-col"
+      style={{
+        backgroundImage: "url('/background.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+      }}
+    >
       <main className="flex-1 px-4 pt-16 pb-8 overflow-y-auto">
         <div className="w-full max-w-sm mx-auto">
+          {/* Logo sur fond sombre */}
+          <div className="flex justify-center mb-8">
+            <Image src="/image.webp" alt="Club Invest" width={140} height={38} priority />
+          </div>
+
           <Suspense fallback={<LoginFormSkeleton />}>
             <LoginForm />
           </Suspense>
 
           {/* Not a client yet */}
           <div className="mt-8 text-center">
-            <p className="text-text-muted text-sm mb-3">Pas encore client ?</p>
+            <p className="text-white/60 text-sm mb-3">Pas encore client ?</p>
             <Link
               href="/simulate"
               className="inline-flex items-center justify-center gap-2 w-full px-6 py-4 text-base font-semibold text-white gradient-cta rounded-2xl transition-all"
