@@ -21,7 +21,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-4 space-y-4" style={{ minHeight: '100svh' }}>
+    <div className="-mt-10 px-4 pt-6 pb-4 space-y-4" style={{ minHeight: '100svh' }}>
       <GeoMap />
       <button
         onClick={handleShare}

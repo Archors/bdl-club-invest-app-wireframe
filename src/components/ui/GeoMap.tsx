@@ -34,10 +34,43 @@ function getColor(numericId: string): string {
 
 const LOGO_COLORS = ['#0B034D', '#2E17D0', '#6C5AED', '#0E8B5D', '#A77958', '#C2002E']
 
-function CompanyLogo({ name, domain }: { name: string; domain: string }) {
-  const [src, setSrc] = useState(
-    `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=128`
+function LogoImage({ name, domain }: { name: string; domain: string }) {
+  const [src, setSrc] = useState(`https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=128`)
+  const [failed, setFailed] = useState(false)
+  const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  const bg = LOGO_COLORS[name.charCodeAt(0) % LOGO_COLORS.length]
+
+  if (failed) {
+    return (
+      <div
+        className="w-6 h-6 rounded flex items-center justify-center text-white text-[9px] font-bold"
+        style={{ background: bg }}
+      >
+        {initials}
+      </div>
+    )
+  }
+
+  return (
+    <img
+      src={src}
+      alt={name}
+      width={28}
+      height={28}
+      className="object-contain"
+      onError={() => {
+        if (src.includes('clearbit')) {
+          setSrc(`https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=128`)
+        } else {
+          setFailed(true)
+        }
+      }}
+    />
   )
+}
+
+function CompanyLogo({ name, domain }: { name: string; domain: string }) {
+  const [src, setSrc] = useState(`https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=128`)
   const [failed, setFailed] = useState(false)
   const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
   const bg = LOGO_COLORS[name.charCodeAt(0) % LOGO_COLORS.length]
@@ -62,9 +95,8 @@ function CompanyLogo({ name, domain }: { name: string; domain: string }) {
         height={28}
         className="object-contain p-0.5"
         onError={() => {
-          if (src.includes('gstatic')) {
-            // Fallback 2 : DuckDuckGo
-            setSrc(`https://icons.duckduckgo.com/ip3/${domain}.ico`)
+          if (src.includes('clearbit')) {
+            setSrc(`https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=128`)
           } else {
             setFailed(true)
           }
@@ -78,65 +110,94 @@ export function GeoMap() {
   const [tooltip, setTooltip] = useState<{ name: string; weight: number } | null>(null)
 
   return (
-    <div className="bg-white rounded-2xl border border-border overflow-hidden">
-      <div className="px-4 pt-4 pb-2">
-        <p className="text-[11px] text-text-muted uppercase tracking-wide font-semibold">Répartition géographique</p>
-      </div>
-
-      {/* Carte — pointer-events none pour bloquer tout interaction */}
-      <div className="relative h-64 w-full" style={{ touchAction: 'none', pointerEvents: 'none' }}>
-        <ComposableMap
-          projection="geoAzimuthalEqualArea"
-          projectionConfig={{ rotate: [-10, -50, 0], scale: 520 }}
-          width={400}
-          height={320}
-          style={{ width: '100%', height: '100%' }}
-        >
-          <ZoomableGroup zoom={1} center={[10, 52]} minZoom={1} maxZoom={1}>
-            <Geographies geography={GEO_URL}>
-              {({ geographies }) =>
-                geographies
-                  .filter(geo => {
-                    const id = geo.id
-                    return numericSet.has(id) || [
-                      '616','203','348','703','642','100','300','191','070','705','499',
-                      '440','428','233','756','040','528','056','372','208','246','578','752','724','620','380','276','826','250'
-                    ].includes(id)
-                  })
-                  .map(geo => (
-                    <Geography
-                      key={geo.rsmKey}
-                      geography={geo}
-                      fill={getColor(geo.id)}
-                      stroke="#fff"
-                      strokeWidth={0.5}
-                      style={{
-                        default: { outline: 'none' },
-                        hover:   { outline: 'none' },
-                        pressed: { outline: 'none' },
-                      }}
-                    />
-                  ))
-              }
-            </Geographies>
-          </ZoomableGroup>
-        </ComposableMap>
-
-        {tooltip && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg pointer-events-none whitespace-nowrap">
-            {tooltip.name} · {tooltip.weight.toFixed(1)} %
-          </div>
-        )}
+    <div className="space-y-3">
+      {/* Carte géographique */}
+      <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+        <div className="flex items-baseline justify-between px-4 pt-4 pb-2">
+          <p className="text-[11px] text-text-muted uppercase tracking-wide font-semibold">Répartition géographique</p>
+          <p className="text-[10px] text-text-subtle">Au 19 fév. 2025</p>
+        </div>
+        <div className="relative h-64 w-full" style={{ touchAction: 'none', pointerEvents: 'none' }}>
+          <ComposableMap
+            projection="geoAzimuthalEqualArea"
+            projectionConfig={{ rotate: [-10, -50, 0], scale: 520 }}
+            width={400}
+            height={320}
+            style={{ width: '100%', height: '100%' }}
+          >
+            <ZoomableGroup zoom={1} center={[10, 52]} minZoom={1} maxZoom={1}>
+              <Geographies geography={GEO_URL}>
+                {({ geographies }) =>
+                  geographies
+                    .filter(geo => {
+                      const id = geo.id
+                      return numericSet.has(id) || [
+                        '616','203','348','703','642','100','300','191','070','705','499',
+                        '440','428','233','756','040','528','056','372','208','246','578','752','724','620','380','276','826','250'
+                      ].includes(id)
+                    })
+                    .map(geo => (
+                      <Geography
+                        key={geo.rsmKey}
+                        geography={geo}
+                        fill={getColor(geo.id)}
+                        stroke="#fff"
+                        strokeWidth={0.5}
+                        style={{
+                          default: { outline: 'none' },
+                          hover:   { outline: 'none' },
+                          pressed: { outline: 'none' },
+                        }}
+                      />
+                    ))
+                }
+              </Geographies>
+            </ZoomableGroup>
+          </ComposableMap>
+          {tooltip && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg pointer-events-none whitespace-nowrap">
+              {tooltip.name} · {tooltip.weight.toFixed(1)} %
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Top positions */}
-      <div className="border-t border-border">
-        <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wide px-4 pt-3 pb-1">Top positions</p>
-        <div className="divide-y divide-border">
-          {topHoldings.slice(0, 5).map((h) => (
-            <div key={h.name} className="flex items-center gap-3 px-4 py-3">
-              <CompanyLogo name={h.name} domain={h.domain} />
-              <p className="text-sm font-semibold text-text">{h.name}</p>
+      <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+        <div className="flex items-baseline justify-between px-4 pt-4 pb-3">
+          <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide">Top positions</p>
+          <p className="text-[10px] text-text-subtle">Au 19 fév. 2025</p>
+        </div>
+        <div>
+          {topHoldings.slice(0, 5).map((h, index) => (
+            <div
+              key={h.name}
+              className="flex items-center justify-between px-3 py-2 last:border-b-0"
+              style={{ borderBottom: '1px solid #CFD3E2' }}
+            >
+              {/* Gauche : numéro + nom */}
+              <div className="flex items-center gap-2">
+                <span
+                  className="leading-none"
+                  style={{ fontFamily: 'Trirong, serif', fontWeight: 500, fontSize: 14, color: '#A77958' }}
+                >
+                  {index + 1}
+                </span>
+                <span
+                  className="uppercase"
+                  style={{ fontFamily: 'Trirong, serif', fontWeight: 500, fontSize: 12, color: '#3B3663' }}
+                >
+                  {h.name}
+                </span>
+              </div>
+
+              {/* Droite : logo dans une box secondary-100 */}
+              <div
+                className="flex items-center justify-center shrink-0"
+                style={{ width: 64, height: 30, borderRadius: 8, backgroundColor: '#F4EFEB' }}
+              >
+                <LogoImage name={h.name} domain={h.domain} />
+              </div>
             </div>
           ))}
         </div>

@@ -75,7 +75,7 @@ export default function ResourcesPage() {
 
   if (loading) {
     return (
-      <div className="p-4 space-y-3">
+      <div className="bg-background rounded-t-3xl p-4 space-y-3">
         {[1, 2, 3, 4, 5].map((i) => (
           <div key={i} className="bg-white rounded-2xl p-4 flex gap-3 animate-pulse">
             <div className="w-16 h-16 rounded-xl bg-border shrink-0" />
@@ -91,7 +91,7 @@ export default function ResourcesPage() {
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="bg-background rounded-t-3xl p-4 space-y-4">
       {articles.map((article, index) => (
         <Link key={article.slug} href={`/app/resources/${article.slug}`} className="block active:scale-[0.98] transition-transform duration-150">
         <Card padding="none">

@@ -75,8 +75,8 @@ function FlippableCard({ firstName, lastName, sponsorCode, flipped, onFlip }: {
         <CardFace>
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-beige/70 text-[10px] uppercase tracking-[0.2em] font-display">BDL Club Invest</p>
-              <p className="text-beige-light text-xs mt-0.5 font-display italic">Carte Membre</p>
+              <p className="text-beige text-[10px] uppercase tracking-[0.2em] font-display">BDL Club Invest</p>
+              <p className="text-beige-light text-xs mt-0.5 font-display italic brightness-125">Carte Membre</p>
             </div>
             <div className="w-9 h-9 rounded-full border border-beige/30 bg-white/5 backdrop-blur-sm flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-beige">
@@ -87,8 +87,8 @@ function FlippableCard({ firstName, lastName, sponsorCode, flipped, onFlip }: {
           <div>
             <p className="text-white text-xl font-bold tracking-wide">{firstName} {lastName}</p>
             <div className="mt-3 flex items-center gap-2">
-              <p className="text-beige/60 text-[9px] uppercase tracking-[0.15em]">Code parrain</p>
-              <p className="text-beige-light text-sm font-mono font-bold bg-white/8 backdrop-blur-sm px-3 py-1 rounded-lg border border-beige/15">{sponsorCode}</p>
+              <p className="text-beige text-[9px] uppercase tracking-[0.15em]">Code parrain</p>
+              <p className="text-beige-light text-sm font-mono font-bold bg-white/8 backdrop-blur-sm px-3 py-1 rounded-lg border border-beige/30">{sponsorCode}</p>
             </div>
           </div>
         </CardFace>

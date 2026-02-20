@@ -34,7 +34,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1 pb-28">{children}</main>
+      <main className="flex-1 relative z-10" style={{ paddingBottom: 'calc(64px + max(28px, env(safe-area-inset-bottom)) + 72px)' }}>{children}</main>
       <BottomNav />
     </div>
   )

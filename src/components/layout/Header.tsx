@@ -24,6 +24,8 @@ const pageTitles: Record<string, string> = {
   '/app/transactions': 'Mouvements',
   '/app/documents': 'Documents',
   '/app/profile': 'Mon compte',
+  '/app/profile/password': 'Mot de passe',
+  '/app/club': 'Le Club',
   '/app/alerts': 'Notifications',
   '/app/actions/deposit': 'Nouveau versement',
   '/app/actions/scheduled-deposit': 'Versement programmé',
@@ -53,7 +55,7 @@ export function Header() {
     return pageTitles[pathname] || 'Le Club'
   }
 
-  const mainTabs = ['/app', '/app/resources', '/app/transactions', '/app/club', '/app/profile']
+  const mainTabs = ['/app', '/app/resources', '/app/club', '/app/profile']
   const showBackButton = !mainTabs.includes(pathname)
   const useHistoryBack = pathname.startsWith('/app/actions/') || pathname.startsWith('/app/contracts')
 
@@ -72,12 +74,17 @@ export function Header() {
         backgroundImage: "url('/background.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'center top',
-        borderRadius: '0 0 16px 16px',
+        borderRadius: '0 0 32px 32px',
       }}
     >
       {/* Logo + titre */}
-      {(pathname === '/app/resources' || pathname === '/app/profile') ? (
-        /* Ressources + Mon compte : logo gauche + titre centré */
+      {isHome ? (
+        /* Home : logo seul, aligné à gauche */
+        <div className="flex items-center px-5 h-14" style={{ paddingTop: 6 }}>
+          <Image src="/image.webp" alt="Club Invest" width={100} height={28} priority />
+        </div>
+      ) : (pathname === '/app/resources' || pathname === '/app/profile' || pathname === '/app/club') ? (
+        /* Ressources + Mon compte + Club : logo + titre empilés */
         <div className="flex flex-col justify-center px-5 h-24 gap-3">
           <Image src="/image.webp" alt="Club Invest" width={100} height={28} priority />
           <h1
@@ -171,7 +178,7 @@ export function Header() {
 
           {/* Scroll horizontal des contrats */}
           <div>
-          <div className="flex gap-3 px-4 overflow-x-auto no-scrollbar pb-1">
+          <div className="flex gap-3 px-4 overflow-x-auto no-scrollbar pb-1" style={{ touchAction: 'pan-x' }}>
             {CONTRACT_TYPES.map(({ key, label }) => {
               const group = contracts.filter((c) => c.type === key)
               const totalVal = group.reduce((s, c) => s + c.currentValue, 0)

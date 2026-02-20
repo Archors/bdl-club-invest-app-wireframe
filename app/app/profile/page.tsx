@@ -108,7 +108,7 @@ export default function ProfilePage() {
   const address = [user.address, [user.postalCode, user.city].filter(Boolean).join(' ')].filter(Boolean).join(', ')
 
   return (
-    <div className="p-4 space-y-5">
+    <div className="bg-background rounded-t-3xl p-4 space-y-5">
 
       {/* Coordonnées */}
       <div>
