@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Card } from '@/components/ui/Card'
-import { prismicClient } from '@/lib/prismic'
+
+const PRISMIC_API = 'https://club-invest.cdn.prismic.io/api/v2'
+const REF = 'aZc5GhMAACcAotUj'
 
 interface Article {
   title: string
@@ -14,7 +16,6 @@ interface Article {
   thumbnail: string | null
   authorName: string | null
   authorAvatar: string | null
-  tags: string[]
 }
 
 function formatDate(dateStr: string): string {
@@ -25,55 +26,52 @@ function formatDate(dateStr: string): string {
   })
 }
 
-
-const PAGE_SIZE = 15
+async function fetchCurrentRef(): Promise<string> {
+  const res = await fetch(PRISMIC_API)
+  const json = await res.json()
+  return json.refs.find((r: any) => r.isMasterRef)?.ref ?? REF
+}
 
 export default function ResourcesPage() {
   const [articles, setArticles] = useState<Article[]>([])
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
-
-  async function fetchPage(pageNum: number) {
-    const res = await prismicClient.getByType('article', {
-      pageSize: PAGE_SIZE,
-      page: pageNum,
-      orderings: [{ field: 'my.article.date', direction: 'desc' }],
-      fetchLinks: ['author.name', 'author.image'],
-    })
-
-    const mapped: Article[] = res.results.map((doc) => ({
-      title: (doc.data.title as string) ?? '',
-      description: (doc.data.meta_description as string) ?? '',
-      category: ((doc.data.category as any)?.uid ?? '').replace(/-/g, ' '),
-      slug: doc.uid ?? doc.id,
-      date: (doc.data.date as string) ?? doc.first_publication_date,
-      thumbnail: (doc.data.thumbnail as any)?.url ?? null,
-      authorName: (doc.data.author as any)?.data?.name ?? null,
-      authorAvatar: (doc.data.author as any)?.data?.image?.url ?? null,
-      tags: doc.tags ?? [],
-    }))
-
-    setHasMore(res.next_page !== null)
-    return mapped
-  }
 
   useEffect(() => {
-    fetchPage(1).then((data) => {
-      setArticles(data)
+    const load = async () => {
+      const currentRef = await fetchCurrentRef()
+
+      // Uniquement les articles de type "Ressource" (pas "Blog")
+      const params = new URLSearchParams({
+        ref: currentRef,
+        q: '[[at(document.type,"blog")][at(my.blog.type,"Ressource")]]',
+        lang: 'fr-fr',
+        pageSize: '100',
+        orderings: '[my.blog.date desc]',
+        fetchLinks: 'auteur.name,auteur.photo,auteur.job',
+      })
+      const res = await fetch(`${PRISMIC_API}/documents/search?${params}`)
+      const json = await res.json()
+
+      const mapped: Article[] = (json.results ?? []).map((doc: any) => ({
+        title: doc.data.title ?? '',
+        description: doc.data.description ?? '',
+        category: doc.data.category ?? '',
+        slug: doc.uid ?? doc.id,
+        date: doc.data.date ?? doc.first_publication_date,
+        thumbnail: doc.data.thumbnail?.url ?? null,
+        authorName: doc.data.auteur?.data?.name ?? null,
+        authorAvatar: doc.data.auteur?.data?.photo?.url ?? null,
+      }))
+
+      setArticles(mapped)
+      setLoading(false)
+    }
+
+    load().catch((err) => {
+      console.error('[Prismic] error:', err)
       setLoading(false)
     })
   }, [])
-
-  async function loadMore() {
-    setLoadingMore(true)
-    const next = page + 1
-    const data = await fetchPage(next)
-    setArticles((prev) => [...prev, ...data])
-    setPage(next)
-    setLoadingMore(false)
-  }
 
   if (loading) {
     return (
@@ -183,15 +181,6 @@ export default function ResourcesPage() {
         </Link>
       ))}
 
-      {hasMore && (
-        <button
-          onClick={loadMore}
-          disabled={loadingMore}
-          className="w-full py-3 rounded-2xl border border-border bg-white text-sm font-semibold text-text-muted hover:bg-surface-solid transition-colors disabled:opacity-50"
-        >
-          {loadingMore ? 'Chargement…' : 'Charger plus'}
-        </button>
-      )}
     </div>
   )
 }

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { prismicClient } from '@/lib/prismic'
+
+const PRISMIC_API = 'https://club-invest.cdn.prismic.io/api/v2'
 
 interface ArticleDetail {
   title: string
@@ -44,6 +45,17 @@ function renderContent(blocks: { type: string; text: string }[]) {
         return (
           <img key={i} src={block.text} alt="" className="w-full rounded-xl my-4 object-cover" />
         )
+      case 'video':
+        return (
+          <div key={i} className="relative w-full my-4 rounded-xl overflow-hidden" style={{ paddingBottom: '56.25%' }}>
+            <iframe
+              src={block.text.replace('vimeo.com/', 'player.vimeo.com/video/')}
+              className="absolute inset-0 w-full h-full"
+              allow="autoplay; fullscreen"
+              allowFullScreen
+            />
+          </div>
+        )
       default:
         return block.text
           ? <p key={i} className="text-sm text-text leading-relaxed">{block.text}</p>
@@ -58,30 +70,72 @@ export default function ArticlePage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    prismicClient.getByUID('article', slug, {
-      fetchLinks: ['author.name', 'author.image', 'author.role'],
-    }).then((doc) => {
-      const rawContent = (doc.data.content as any[]) ?? []
-      const content = rawContent.map((block: any) => {
-        if (block.type === 'image') {
-          return { type: 'image', text: block.url ?? block.src ?? '' }
-        }
-        const text = (block.text ?? block.spans?.map((s: any) => s.text).join('') ?? '')
-        return { type: block.type, text }
+    const load = async () => {
+      const apiRes = await fetch(PRISMIC_API)
+      const apiJson = await apiRes.json()
+      const ref = apiJson.refs.find((r: any) => r.isMasterRef)?.ref
+
+      const params = new URLSearchParams({
+        ref,
+        q: `[[at(my.blog.uid,"${slug}")]]`,
+        lang: 'fr-fr',
+        fetchLinks: 'auteur.name,auteur.photo,auteur.job',
       })
+      const docRes = await fetch(`${PRISMIC_API}/documents/search?${params}`)
+      const docJson = await docRes.json()
+      const doc = docJson.results[0]
+      if (!doc) { setLoading(false); return }
+
+      // Extraire le contenu depuis les slices
+      const slices = (doc.data.slices as any[]) ?? []
+      const content: { type: string; text: string }[] = []
+
+      for (const slice of slices) {
+        if (slice.slice_type === 'paragraph') {
+          // Chercher le champ rich text dans primary (tableau de blocs)
+          const primary = slice.primary ?? {}
+          const richText: any[] = Array.isArray(primary)
+            ? primary
+            : (Object.values(primary).find((v) => Array.isArray(v) && (v as any[])[0]?.type) as any[] | undefined) ?? []
+
+          for (const block of richText) {
+            if (block.type === 'image') {
+              content.push({ type: 'image', text: block.url ?? block.src ?? '' })
+            } else {
+              content.push({ type: block.type, text: block.text ?? '' })
+            }
+          }
+        } else if (slice.slice_type === 'faq') {
+          const title = slice.primary?.title?.[0]?.text ?? slice.primary?.title ?? ''
+          if (title) content.push({ type: 'heading2', text: title })
+          for (const item of slice.items ?? []) {
+            const q = item.question?.[0]?.text ?? item.question ?? ''
+            const a = item.answer?.[0]?.text ?? item.answer ?? ''
+            if (q) content.push({ type: 'heading3', text: q })
+            if (a) content.push({ type: 'paragraph', text: a })
+          }
+        } else if (slice.slice_type === 'blog_video') {
+          const url = slice.primary?.vimeo_url?.url ?? slice.primary?.vimeo_url ?? ''
+          if (url) content.push({ type: 'video', text: url })
+        }
+      }
 
       setArticle({
         title: (doc.data.title as string) ?? '',
         date: (doc.data.date as string) ?? doc.first_publication_date,
-        category: ((doc.data.category as any)?.uid ?? '').replace(/-/g, ' '),
+        category: (doc.data.category as string) ?? '',
         thumbnail: (doc.data.thumbnail as any)?.url ?? null,
-        authorName: (doc.data.author as any)?.data?.name ?? null,
-        authorAvatar: (doc.data.author as any)?.data?.image?.url ?? null,
-        authorRole: (doc.data.author as any)?.data?.role ?? null,
+        authorName: (doc.data.auteur as any)?.data?.name ?? null,
+        authorAvatar: (doc.data.auteur as any)?.data?.photo?.url ?? null,
+        authorRole: (doc.data.auteur as any)?.data?.job ?? null,
         content,
       })
       setLoading(false)
-    }).catch(() => setLoading(false))
+    }
+    load().catch((err) => {
+      console.error('[Prismic] article error:', err)
+      setLoading(false)
+    })
   }, [slug])
 
   if (loading) {

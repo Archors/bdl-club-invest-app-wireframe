@@ -96,47 +96,61 @@ export function Header() {
         backgroundImage: "url('/background.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'center top',
-        borderRadius: '0 0 24px 24px',
+        borderRadius: '0 0 16px 16px',
       }}
     >
-      {/* Logo + titre sur la même ligne */}
-      <div className={cn('flex items-center justify-between px-5', isHome ? 'h-14' : 'h-20')}>
-        {/* Gauche : bouton retour (si sous-page) + logo */}
-        <div className="flex items-center gap-3">
-          {showBackButton && (
-            useHistoryBack ? (
-              <button
-                onClick={() => router.back()}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors text-white shrink-0"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-              </button>
-            ) : (
-              <Link
-                href={getBackHref()}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors text-white shrink-0"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-              </Link>
-            )
-          )}
+      {/* Logo + titre */}
+      {pathname === '/app/resources' ? (
+        /* Ressources : logo + titre empilés centrés */
+        <div className="flex flex-col items-start justify-center px-5 pt-7 pb-6 gap-4">
           <Image src="/image.webp" alt="Club Invest" width={100} height={28} priority />
+          <h1
+            className="text-white text-2xl leading-tight"
+            style={{ fontFamily: 'Trirong, serif', fontWeight: 300 }}
+          >
+            {getTitle()}
+          </h1>
         </div>
-
-        {/* Droite : titre */}
-        {!isHome && (
-          <div className="text-right">
-            <h1 className="font-semibold text-lg text-white leading-tight">{getTitle()}</h1>
-            {pathname === '/app/profile' && user && (
-              <p className="text-sm text-white/70 mt-0.5">{user.firstName} {user.lastName}</p>
+      ) : (
+        /* Autres pages : logo gauche, titre droite */
+        <div className={cn('flex items-center justify-between px-5', isHome ? 'h-14' : 'h-20')}>
+          {/* Gauche : bouton retour + logo */}
+          <div className="flex items-center gap-3">
+            {showBackButton && (
+              useHistoryBack ? (
+                <button
+                  onClick={() => router.back()}
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors text-white shrink-0"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </button>
+              ) : (
+                <Link
+                  href={getBackHref()}
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors text-white shrink-0"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </Link>
+              )
             )}
+            <Image src="/image.webp" alt="Club Invest" width={100} height={28} priority />
           </div>
-        )}
-      </div>
+
+          {/* Droite : titre */}
+          {!isHome && (
+            <div className="text-right">
+              <h1 className="font-semibold text-lg text-white leading-tight">{getTitle()}</h1>
+              {pathname === '/app/profile' && user && (
+                <p className="text-sm text-white/70 mt-0.5">{user.firstName} {user.lastName}</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Section home : total + contrats scrollables */}
       {isHome && !loading && (
