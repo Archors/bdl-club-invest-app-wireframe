@@ -166,19 +166,14 @@ export default function ArticlePage() {
     <div className="pb-8">
       {/* Image hero */}
       {article.thumbnail ? (
-        <img
-          src={article.thumbnail}
-          alt={article.title}
-          className="w-full h-52 object-cover"
-        />
-      ) : (
-        <div className="w-full h-52 bg-surface-solid flex items-center justify-center">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-subtle">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-          </svg>
+        <div className="mx-4 mt-4 rounded-2xl overflow-hidden">
+          <img
+            src={article.thumbnail}
+            alt={article.title}
+            className="w-full h-52 object-cover"
+          />
         </div>
-      )}
+      ) : null}
 
       <div className="p-4">
         {/* Catégorie + date */}

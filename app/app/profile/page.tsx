@@ -114,6 +114,7 @@ export default function ProfilePage() {
       <div>
         <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide mb-2 px-1">Coordonnées</p>
         <div className="bg-white rounded-2xl border border-border overflow-hidden">
+          <InfoRow label="Nom" value={`${user.firstName} ${user.lastName}`} />
           <InfoRow label="Email" value={user.email} />
           <InfoRow label="Téléphone" value={user.phone || '—'} />
           <InfoRow label="Adresse" value={address || '—'} last />

@@ -44,31 +44,7 @@ export function Header() {
   const { contracts, totalValue, totalPerformance, totalPerformancePercent, loading } = useContracts()
 
   const isHome = pathname === '/app'
-  const [collapsed, setCollapsed] = useState(false)
   const [sheetData, setSheetData] = useState<{ label: string; contracts: Contract[] } | null>(null)
-  useEffect(() => {
-    if (!isHome) return
-    setCollapsed(false)
-
-    let localCollapsed = false
-    let collapseAt = 0
-
-    const onScroll = () => {
-      const y = window.scrollY
-      const now = Date.now()
-      if (!localCollapsed && y > 60) {
-        localCollapsed = true
-        collapseAt = now
-        setCollapsed(true)
-      } else if (localCollapsed && y < 20 && now - collapseAt > 400) {
-        localCollapsed = false
-        setCollapsed(false)
-      }
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [isHome])
 
   const getTitle = () => {
     if (pathname.startsWith('/app/contracts/') && pathname !== '/app/contracts') {
@@ -91,7 +67,7 @@ export function Header() {
 
   return (
     <header
-      className="sticky top-0 z-40"
+      className={cn(isHome ? '' : 'sticky top-0 z-40')}
       style={{
         backgroundImage: "url('/background.png')",
         backgroundSize: 'cover',
@@ -100,20 +76,41 @@ export function Header() {
       }}
     >
       {/* Logo + titre */}
-      {pathname === '/app/resources' ? (
-        /* Ressources : logo + titre empilés centrés */
-        <div className="flex flex-col items-start justify-center px-5 pt-7 pb-6 gap-4">
+      {(pathname === '/app/resources' || pathname === '/app/profile') ? (
+        /* Ressources + Mon compte : logo gauche + titre centré */
+        <div className="flex flex-col justify-center px-5 h-24 gap-3">
           <Image src="/image.webp" alt="Club Invest" width={100} height={28} priority />
           <h1
-            className="text-white text-2xl leading-tight"
+            className="text-white text-lg leading-tight text-center"
             style={{ fontFamily: 'Trirong, serif', fontWeight: 300 }}
           >
             {getTitle()}
           </h1>
         </div>
+      ) : pathname.startsWith('/app/resources/') ? (
+        /* Article : logo gauche + bouton retour et titre centrés */
+        <div className="flex flex-col justify-center px-5 h-24 gap-3">
+          <Image src="/image.webp" alt="Club Invest" width={100} height={28} priority />
+          <div className="relative flex items-center justify-center">
+            <Link
+              href="/app/resources"
+              className="absolute left-0 w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors text-white"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </Link>
+            <h1
+              className="text-white text-lg leading-tight"
+              style={{ fontFamily: 'Trirong, serif', fontWeight: 300 }}
+            >
+              Actualités
+            </h1>
+          </div>
+        </div>
       ) : (
         /* Autres pages : logo gauche, titre droite */
-        <div className={cn('flex items-center justify-between px-5', isHome ? 'h-14' : 'h-20')}>
+        <div className={cn('flex items-center justify-between px-5', isHome ? 'h-14' : 'h-24')}>
           {/* Gauche : bouton retour + logo */}
           <div className="flex items-center gap-3">
             {showBackButton && (
@@ -156,7 +153,7 @@ export function Header() {
       {isHome && !loading && (
         <div className="pt-2 pb-7">
           {/* Total épargne */}
-          <div className={cn('px-4 transition-all duration-300 ease-in-out', collapsed ? 'mb-0' : 'mb-6')}>
+          <div className="px-4 mb-6">
             <p className="text-xs text-white/60 mb-1">Total de l&apos;épargne</p>
             <p className="text-4xl font-bold text-white mt-1">{formatCurrency(totalValue)}</p>
             <div className="flex items-center gap-2 mt-2.5">
@@ -173,10 +170,7 @@ export function Header() {
           </div>
 
           {/* Scroll horizontal des contrats */}
-          <div
-            className="overflow-hidden transition-all duration-300 ease-in-out"
-            style={{ maxHeight: collapsed ? 0 : 200, opacity: collapsed ? 0 : 1 }}
-          >
+          <div>
           <div className="flex gap-3 px-4 overflow-x-auto no-scrollbar pb-1">
             {CONTRACT_TYPES.map(({ key, label }) => {
               const group = contracts.filter((c) => c.type === key)
