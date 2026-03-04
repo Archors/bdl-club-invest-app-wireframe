@@ -234,6 +234,32 @@ export default function ArticlePage() {
         <div className="space-y-3">
           {renderContent(article.content)}
         </div>
+
+        {/* Bouton partage en fin d'article */}
+        <div className="mt-8 pt-6 border-t border-border flex justify-center">
+          <button
+            onClick={async () => {
+              if (navigator.share) {
+                try {
+                  await navigator.share({
+                    title: article.title,
+                    text: article.title,
+                    url: window.location.href,
+                  })
+                } catch { /* cancelled */ }
+              } else {
+                await navigator.clipboard.writeText(window.location.href)
+              }
+            }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-surface-solid text-text text-sm font-medium active:scale-95 transition-transform"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+            Partager cet article
+          </button>
+        </div>
       </div>
     </div>
   )
