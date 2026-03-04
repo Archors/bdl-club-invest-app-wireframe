@@ -64,7 +64,7 @@
   --primary-light: #2E17D0;
   --primary-dark: #070231;
 
-  /* Accent - Violet/Bleu vif */
+  /* Accent - Bleu/Violet Club Invest (palette officielle) */
   --accent: #6C5AED;
   --accent-light: #6C5AED;
   --accent-dark: #2E17D0;
@@ -169,12 +169,20 @@ body {
 
 /* Gradient CTA button */
 .gradient-cta {
-  background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent) 100%);
+  background: linear-gradient(80deg,#2E17D0 2.98%,#3222D6 21.82%,#3A2EDB 33.4%,#4539E0 42.54%,#4F45E5 45.14%,#4539E0 49.91%,#3A2EDB 52.74%,#3222D6 66.5%,#3A2EDB 73.11%,#4539E0 77.74%,#4F45E5 80.94%,#3A2EDB 86.77%,#3222D6 91.21%,#2E17D0 98.88%);
+  background-size: 400%;
+  animation: rainbow-cta 40s linear infinite;
   box-shadow: var(--glow-accent);
 }
 
-.gradient-cta:hover {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+.gradient-cta:active {
+  box-shadow: 0 0 10px rgba(46, 23, 208, 0.5);
+}
+
+@keyframes rainbow-cta {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Primary glow */

@@ -69,7 +69,7 @@ const SECTOR_ICONS: Record<string, React.ReactNode> = {
   ),
 }
 
-const SECTOR_COLORS = ['#0B034D', '#2E17D0', '#6C5AED', '#0E8B5D', '#A77958', '#C2002E', '#D97706', '#0891B2']
+const SECTOR_COLORS = ['#0B034D', '#2E17D0', '#6C5AED', '#372CE6', '#031C4F', '#3F2AD6', '#5039E0', '#6247E8', '#745BF6', '#4932E0']
 
 interface IndustryData {
   name: string
