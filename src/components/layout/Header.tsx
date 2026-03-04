@@ -25,6 +25,7 @@ const pageTitles: Record<string, string> = {
   '/app/documents': 'Documents',
   '/app/profile': 'Mon compte',
   '/app/profile/password': 'Mot de passe',
+  '/app/faq': 'FAQ',
   '/app/club': 'Le Club',
   '/app/alerts': 'Notifications',
   '/app/actions/deposit': 'Nouveau versement',
@@ -64,6 +65,7 @@ export function Header() {
     if (pathname.startsWith('/app/resources/')) return '/app/resources'
     if (pathname.startsWith('/app/club/')) return '/app/club'
     if (pathname === '/app/documents') return '/app/profile'
+    if (pathname === '/app/faq') return '/app/profile'
     return '/app'
   }
 

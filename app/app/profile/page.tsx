@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { ConfirmModal } from '@/components/ui/Modal'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/cn'
@@ -76,7 +77,7 @@ function LinkRow({
   last?: boolean
 }) {
   return (
-    <a href={href} className={cn('flex items-center gap-3.5 px-4 py-3.5', !last && 'border-b border-border')}>
+    <Link href={href} className={cn('flex items-center gap-3.5 px-4 py-3.5', !last && 'border-b border-border')}>
       <div className="w-8 h-8 rounded-xl bg-surface-solid flex items-center justify-center shrink-0 text-text-muted">
         {icon}
       </div>
@@ -84,7 +85,7 @@ function LinkRow({
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-border shrink-0">
         <polyline points="9 18 15 12 9 6" />
       </svg>
-    </a>
+    </Link>
   )
 }
 
@@ -129,6 +130,11 @@ export default function ProfilePage() {
             icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13,2 13,9 20,9"/></svg>}
             label="Documents"
             href="/app/documents"
+          />
+          <LinkRow
+            icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>}
+            label="FAQ"
+            href="/app/faq"
             last
           />
         </div>

@@ -141,8 +141,8 @@ export default function LoginPage() {
           <div className="mt-8 text-center">
             <p className="text-white/60 text-sm mb-3">Pas encore client ?</p>
             <Link
-              href="/simulate"
-              className="inline-flex items-center justify-center gap-2 w-full px-6 py-4 text-base font-semibold text-white gradient-cta rounded-2xl transition-all"
+              href="/discover"
+              className="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 text-sm font-semibold text-white gradient-cta rounded-2xl transition-all min-h-[44px]"
             >
               <svg
                 width="20"
@@ -154,8 +154,11 @@ export default function LoginPage() {
               >
                 <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" />
               </svg>
-              Découvrir
+              Découvrir BDL Club Invest
             </Link>
+            <p className="text-white/50 text-xs mt-3 px-2">
+              En une minute, découvrez un récapitulatif de notre recommandation adaptée à votre profil.
+            </p>
           </div>
         </div>
       </main>

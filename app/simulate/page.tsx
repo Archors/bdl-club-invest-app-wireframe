@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 // ─── Calcul identique au site Club Invest ───────────────────────────────────
 function calculateChartData(initial: number, monthly: number, horizon: number, rate: number) {
@@ -281,6 +282,7 @@ function SimBarChart({ data }: { data: { year: number; totalValue: number; retur
 
 // ─── Page principale ──────────────────────────────────────────────────────────
 export default function SimulatePage() {
+  const router = useRouter()
   const [risk, setRisk] = useState<'safe' | 'balanced'>('balanced')
   const [initial, setInitial] = useState(20000)
   const [monthly, setMonthly] = useState(300)
@@ -303,17 +305,22 @@ export default function SimulatePage() {
           backgroundImage: "url('/background.png')",
           backgroundSize: 'cover',
           backgroundPosition: 'center top',
-          borderRadius: '0 0 24px 24px',
+          borderRadius: '0 0 32px 32px',
         }}
       >
-        <div className="px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-white">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-            <Image src="/image.webp" alt="Club Invest" width={80} height={22} />
-          </Link>
-          <h1 className="text-base font-semibold text-white">Simulateur</h1>
+        <div className="flex items-center justify-between px-4 h-14">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => router.back()}
+              className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors text-white shrink-0"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <Image src="/image.webp" alt="Club Invest" width={80} height={22} priority />
+          </div>
+          <h1 className="font-semibold text-base text-white">Simulateur</h1>
         </div>
       </header>
 
@@ -447,9 +454,9 @@ export default function SimulatePage() {
         </p>
 
         {/* CTA */}
-        <button className="w-full py-4 rounded-2xl gradient-cta text-white font-semibold text-base">
-          Rejoindre Club Invest
-        </button>
+        <Link href="/signup" className="block w-full py-4 rounded-2xl gradient-cta text-white font-semibold text-base text-center">
+          Rejoindre le Club
+        </Link>
       </main>
     </div>
   )

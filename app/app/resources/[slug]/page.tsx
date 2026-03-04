@@ -185,8 +185,33 @@ export default function ArticlePage() {
           <span className="text-[11px] text-text-subtle">{formatDate(article.date)}</span>
         </div>
 
-        {/* Titre */}
-        <h1 className="text-xl font-bold text-text leading-snug">{article.title}</h1>
+        {/* Titre + Partager */}
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-xl font-bold text-text leading-snug flex-1">{article.title}</h1>
+          <button
+            onClick={async (e) => {
+              e.stopPropagation()
+              if (navigator.share) {
+                try {
+                  await navigator.share({
+                    title: article.title,
+                    text: article.title,
+                    url: window.location.href,
+                  })
+                } catch { /* cancelled */ }
+              } else {
+                await navigator.clipboard.writeText(window.location.href)
+              }
+            }}
+            className="mt-1 w-8 h-8 rounded-full bg-surface-solid flex items-center justify-center shrink-0 active:scale-90 transition-transform"
+            aria-label="Partager"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+          </button>
+        </div>
 
         {/* Auteur */}
         {(article.authorName || article.authorAvatar) && (

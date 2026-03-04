@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
@@ -76,12 +77,9 @@ function FlippableCard({ firstName, lastName, sponsorCode, flipped, onFlip }: {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-beige text-[10px] uppercase tracking-[0.2em] font-display">BDL Club Invest</p>
-              <p className="text-beige-light text-xs mt-0.5 font-display italic brightness-125">Carte Membre</p>
             </div>
             <div className="w-9 h-9 rounded-full border border-beige/30 bg-white/5 backdrop-blur-sm flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-beige">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
+              <Image src="/bdl_logo_short.png" alt="BDL" width={20} height={13} className="opacity-80" />
             </div>
           </div>
           <div>
@@ -100,12 +98,13 @@ function FlippableCard({ firstName, lastName, sponsorCode, flipped, onFlip }: {
         >
         <CardFace>
           <div className="h-full flex flex-col justify-between">
-            <div className="text-center flex-1 flex flex-col items-center justify-center">
-              <p className="text-beige/60 text-[10px] uppercase tracking-[0.2em] mb-3 font-display">Code Parrain</p>
-              <div className="bg-white/8 backdrop-blur-sm border border-beige/20 rounded-xl px-6 py-3">
-                <p className="text-beige-light text-2xl font-mono font-bold tracking-[0.15em]">{sponsorCode}</p>
-              </div>
-              <p className="text-white/40 text-xs mt-4">Partagez ce code avec vos proches</p>
+            <div className="flex items-start justify-between">
+              <p className="text-beige text-[10px] uppercase tracking-[0.2em] font-display">Parrainage</p>
+              <Image src="/bdl_logo_short.png" alt="BDL" width={20} height={13} className="opacity-60" />
+            </div>
+            <div className="text-center flex-1 flex flex-col items-center justify-center gap-3">
+              <p className="text-beige/60 text-[10px] uppercase tracking-[0.2em]">Personnes parrainées</p>
+              <p className="text-4xl font-bold text-white">3</p>
             </div>
             <div className="text-center">
               <p className="text-beige/30 text-[9px] font-display italic">BDL Club Invest &middot; Membre depuis 2023</p>
